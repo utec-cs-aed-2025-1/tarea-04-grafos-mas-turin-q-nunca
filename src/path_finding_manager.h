@@ -5,12 +5,10 @@
 #ifndef HOMEWORK_GRAPH_PATH_FINDING_MANAGER_H
 #define HOMEWORK_GRAPH_PATH_FINDING_MANAGER_H
 
-
-#include "window_manager.h"
-#include "graph.h"
-#include <unordered_map>
 #include <set>
-
+#include <unordered_map>
+#include "graph.h"
+#include "window_manager.h"
 
 // Este enum sirve para identificar el algoritmo que el usuario desea simular
 enum Algorithm {
@@ -19,21 +17,22 @@ enum Algorithm {
     AStar
 };
 
-
 //* --- PathFindingManager ---
 //
 // Esta clase sirve para realizar las simulaciones de nuestro grafo.
 //
 // Variables miembro
 //     - path           : Contiene el camino resultante del algoritmo que se desea simular
-//     - visited_edges  : Contiene todas las aristas que se visitaron en el algoritmo, notar que 'path'
+//     - visited_edges  : Contiene todas las aristas que se visitaron en el algoritmo, notar que
+//     'path'
 //                        es un subconjunto de 'visited_edges'.
-//     - window_manager : Instancia del manejador de ventana, es utilizado para dibujar cada paso del algoritmo
+//     - window_manager : Instancia del manejador de ventana, es utilizado para dibujar cada paso
+//     del algoritmo
 //     - src            : Nodo incial del que se parte en el algoritmo seleccionado
 //     - dest           : Nodo al que se quiere llegar desde 'src'
 //*
 class PathFindingManager {
-    WindowManager *window_manager;
+    WindowManager* window_manager;
     std::vector<sfLine> path;
     std::vector<sfLine> visited_edges;
 
@@ -41,36 +40,37 @@ class PathFindingManager {
         Node* node;
         double dist;
 
-        bool operator < (const Entry& other) const {
+        bool operator<(const Entry& other) const {
             return dist < other.dist;
         }
     };
 
-    void dijkstra(Graph &graph) {
-        std::unordered_map<Node *, Node *> parent;
+    void dijkstra(Graph& graph) {
+        std::unordered_map<Node*, Node*> parent;
         // TODO: Add your code here
 
         set_final_path(parent);
     }
 
-    void a_star(Graph &graph) {
-        std::unordered_map<Node *, Node *> parent;
+    void a_star(Graph& graph) {
+        std::unordered_map<Node*, Node*> parent;
         // TODO: Add your code here
 
         set_final_path(parent);
     }
 
     //* --- render ---
-    // En cada iteración de los algoritmos esta función es llamada para dibujar los cambios en el 'window_manager'
+    // En cada iteración de los algoritmos esta función es llamada para dibujar los cambios en el
+    // 'window_manager'
     void render() {
         sf::sleep(sf::milliseconds(10));
         // TODO: Add your code here
     }
 
     //* --- set_final_path ---
-    // Esta función se usa para asignarle un valor a 'this->path' al final de la simulación del algoritmo.
-    // 'parent' es un std::unordered_map que recibe un puntero a un vértice y devuelve el vértice anterior a el,
-    // formando así el 'path'.
+    // Esta función se usa para asignarle un valor a 'this->path' al final de la simulación del
+    // algoritmo. 'parent' es un std::unordered_map que recibe un puntero a un vértice y devuelve el
+    // vértice anterior a el, formando así el 'path'.
     //
     // ej.
     //     parent(a): b
@@ -82,19 +82,20 @@ class PathFindingManager {
     //
     // Este path será utilizado para hacer el 'draw()' del 'path' entre 'src' y 'dest'.
     //*
-    void set_final_path(std::unordered_map<Node *, Node *> &parent) {
+    void set_final_path(std::unordered_map<Node*, Node*>& parent) {
         Node* current = dest;
 
         // TODO: Add your code here
     }
 
 public:
-    Node *src = nullptr;
-    Node *dest = nullptr;
+    Node* src = nullptr;
+    Node* dest = nullptr;
 
-    explicit PathFindingManager(WindowManager *window_manager) : window_manager(window_manager) {}
+    explicit PathFindingManager(WindowManager* window_manager)
+        : window_manager(window_manager) {}
 
-    void exec(Graph &graph, Algorithm algorithm) {
+    void exec(Graph& graph, Algorithm algorithm) {
         if (src == nullptr || dest == nullptr) {
             return;
         }
@@ -121,13 +122,13 @@ public:
     void draw(bool draw_extra_lines) {
         // Dibujar todas las aristas visitadas
         if (draw_extra_lines) {
-            for (sfLine &line: visited_edges) {
+            for (sfLine& line : visited_edges) {
                 line.draw(window_manager->get_window(), sf::RenderStates::Default);
             }
         }
 
         // Dibujar el camino resultante entre 'str' y 'dest'
-        for (sfLine &line: path) {
+        for (sfLine& line : path) {
             line.draw(window_manager->get_window(), sf::RenderStates::Default);
         }
 
@@ -143,5 +144,4 @@ public:
     }
 };
 
-
-#endif //HOMEWORK_GRAPH_PATH_FINDING_MANAGER_H
+#endif  // HOMEWORK_GRAPH_PATH_FINDING_MANAGER_H

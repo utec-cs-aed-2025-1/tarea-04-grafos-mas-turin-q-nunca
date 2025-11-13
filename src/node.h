@@ -13,9 +13,7 @@ sf::Color default_node_color = sf::Color(150, 40, 50);
 // Radio por defecto de un vertice (usado por SFML)
 float default_radius = 0.4f;
 
-
 struct Edge;
-
 
 // *
 // ---- Node ----
@@ -36,16 +34,18 @@ struct Edge;
 struct Node {
     std::size_t id;
     sf::Vector2f coord;
-    std::vector<Edge *> edges {};
+    std::vector<Edge*> edges{};
 
     sf::Color color = default_node_color;
     float radius = default_radius;
 
-    explicit Node(std::size_t id, float x, float y) : id(id), coord(x, y) {}
+    explicit Node(std::size_t id, float x, float y)
+        : id(id),
+          coord(x, y) {}
 
-    static void parse_csv(const std::string &nodes_path, std::map<std::size_t, Node *> &nodes) {
+    static void parse_csv(const std::string& nodes_path, std::map<std::size_t, Node*>& nodes) {
         std::ifstream file(nodes_path);
-        char *header = new char[40];
+        char* header = new char[40];
         header[39] = '\0';
         file.getline(header, 40, '\n');
         delete[] header;
@@ -53,11 +53,14 @@ struct Node {
         while (true) {
             char *id, *x, *y;
             id = new char[15];
-            for (int i = 0; i < 15; ++i) id[i] = '\0';
+            for (int i = 0; i < 15; ++i)
+                id[i] = '\0';
             y = new char[15];
-            for (int i = 0; i < 15; ++i) y[i] = '\0';
+            for (int i = 0; i < 15; ++i)
+                y[i] = '\0';
             x = new char[15];
-            for (int i = 0; i < 15; ++i) x[i] = '\0';
+            for (int i = 0; i < 15; ++i)
+                x[i] = '\0';
 
             file.getline(id, 15, ',');
             file.getline(y, 15, ',');
@@ -68,9 +71,7 @@ struct Node {
             }
 
             std::size_t identifier = static_cast<size_t>(std::stoll(id));
-            nodes.insert({
-                                 identifier,
-                                 new Node(identifier, std::stof(y), std::stof(x))});
+            nodes.insert({identifier, new Node(identifier, std::stof(y), std::stof(x))});
 
             delete[] id;
             delete[] y;
@@ -78,7 +79,7 @@ struct Node {
         }
     }
 
-    void draw(sf::RenderWindow &window) const {
+    void draw(sf::RenderWindow& window) const {
         sf::CircleShape point(radius);
         point.setPosition(coord);
         point.setFillColor(color);
@@ -92,5 +93,4 @@ struct Node {
     }
 };
 
-
-#endif //HOMEWORK_GRAPH_NODE_H
+#endif  // HOMEWORK_GRAPH_NODE_H
