@@ -16,9 +16,8 @@ class WindowManager {
     sf::RenderWindow window;
 
 public:
-    explicit WindowManager(int window_width = 600, int window_height = 800) :
-            window(sf::VideoMode(window_width, window_height), "Lima City Graph") {
-    }
+    explicit WindowManager(int window_width = 600, int window_height = 800)
+        : window(sf::VideoMode(window_width, window_height), "Lima City Graph") {}
 
     bool is_open() {
         return window.isOpen();
@@ -28,7 +27,7 @@ public:
         window.close();
     }
 
-    bool poll_event(sf::Event &event) {
+    bool poll_event(sf::Event& event) {
         return window.pollEvent(event);
     }
 
@@ -40,10 +39,9 @@ public:
         window.display();
     }
 
-    sf::RenderWindow &get_window() {
+    sf::RenderWindow& get_window() {
         return window;
     }
 };
 
-
-#endif //HOMEWORK_GRAPH_WINDOW_MANAGER_H
+#endif  // HOMEWORK_GRAPH_WINDOW_MANAGER_H
