@@ -47,7 +47,42 @@ class PathFindingManager {
 
     void dijkstra(Graph& graph) {
         std::unordered_map<Node*, Node*> parent;
-        // TODO: Add your code here
+        std::map<std::size_t, double> dist;
+
+        const auto distance = [&](const std::size_t id) { return dist[id]; };
+        constexpr double INF = std::numeric_limits<double>::infinity();
+        visited_edges.clear();
+
+        for (const auto& [id, node] : graph.nodes) {
+            dist[id] = INF;
+            parent[node] = nullptr;
+        }
+        dist[src->id] = 0.0;
+
+        std::set<std::pair<double, std::size_t>> q;
+        q.insert({distance(src->id), src->id});
+
+        while (!q.empty()) {
+            const auto& [_, v_id] = *q.begin();
+            q.erase(q.begin());
+
+            if (v_id == dest->id)
+                break;
+            for (const auto& edge : graph.nodes[v_id]->edges) {
+                const std::size_t dest_id = edge->dest->id;
+
+                if (dist[v_id] + edge->length < dist[dest_id]) {
+                    q.erase({distance(dest_id), dest_id});
+
+                    dist[dest_id] = dist[v_id] + edge->length;
+                    parent[edge->dest] = graph.nodes[v_id];
+
+                    q.insert({distance(dest_id), dest_id});
+                    visited_edges.emplace_back(edge->src->coord, edge->dest->coord,
+                                               sf::Color(0, 0, 255), default_thickness - 0.5);
+                }
+            }
+        }
 
         set_final_path(parent);
     }
@@ -83,9 +118,23 @@ class PathFindingManager {
     // Este path será utilizado para hacer el 'draw()' del 'path' entre 'src' y 'dest'.
     //*
     void set_final_path(std::unordered_map<Node*, Node*>& parent) {
-        Node* current = dest;
+        path.clear();
 
-        // TODO: Add your code here
+        Node* current = dest;
+        if (current == nullptr) {
+            return;
+        }
+        if (parent[current] == nullptr) {
+            return;
+        }
+
+        while (current != src) {
+            path.emplace_back(parent[current]->coord, current->coord, sf::Color(0, 255, 0),
+                              default_thickness + 2);
+            current = parent[current];
+        }
+
+        std::reverse(path.begin(), path.end());
     }
 
 public:
@@ -100,7 +149,18 @@ public:
             return;
         }
 
-        // TODO: Add your code here
+        switch (algorithm) {
+            case Dijkstra: {
+                dijkstra(graph);
+                break;
+            }
+            case AStar: {
+                a_star(graph);
+                break;
+            }
+            default:
+                break;
+        }
     }
 
     void reset() {
