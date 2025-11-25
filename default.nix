@@ -10,7 +10,6 @@ pkgs.stdenv.mkDerivation {
   nativeBuildInputs = with pkgs; [
     cmake
     sfml_2
-    valgrind
   ];
 
   enableParallelBuilding = true;
