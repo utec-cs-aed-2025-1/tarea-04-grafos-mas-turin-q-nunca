@@ -40,14 +40,8 @@ class PathFindingManager {
     std::vector<sfLine> path;
     std::vector<sfLine> visited_edges;
 
-    struct Entry {
-        Node* node;
-        double dist;
 
-        bool operator<(const Entry& other) const {
-            return dist < other.dist;
         }
-    };
 
     void dijkstra(Graph graph) {
         std::unordered_map<Node*, Node*> parent;
