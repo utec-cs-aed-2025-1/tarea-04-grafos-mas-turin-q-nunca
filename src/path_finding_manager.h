@@ -83,7 +83,7 @@ class PathFindingManager {
                 const std::size_t dest_id = edge->dest->id;
 
                 if (dist[v_id] + edge->length < dist[dest_id]) {
-                    q.erase({dist[dest_id], dest_id});
+                    q.erase({heuristic_table[dest_id], dest_id});
 
                     dist[dest_id] = dist[v_id] + edge->length;
                     parent[edge->dest] = graph.nodes[v_id];
