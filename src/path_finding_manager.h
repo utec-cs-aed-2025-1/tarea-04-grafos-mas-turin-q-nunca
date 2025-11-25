@@ -5,8 +5,12 @@
 #ifndef HOMEWORK_GRAPH_PATH_FINDING_MANAGER_H
 #define HOMEWORK_GRAPH_PATH_FINDING_MANAGER_H
 
+#include <cstddef>
+#include <functional>
+#include <queue>
 #include <set>
 #include <unordered_map>
+#include <vector>
 #include "graph.h"
 #include "window_manager.h"
 
@@ -45,39 +49,42 @@ class PathFindingManager {
         }
     };
 
-    void dijkstra(Graph& graph) {
+    void dijkstra(Graph graph) {
         std::unordered_map<Node*, Node*> parent;
         std::map<std::size_t, double> dist;
+        std::set<std::size_t> visited;
 
-        const auto distance = [&](const std::size_t id) { return dist[id]; };
-        constexpr double INF = std::numeric_limits<double>::infinity();
+        static constexpr double INF = std::numeric_limits<double>::infinity();
+        path.clear();
         visited_edges.clear();
 
         for (const auto& [id, node] : graph.nodes) {
             dist[id] = INF;
             parent[node] = nullptr;
         }
-        dist[src->id] = 0.0;
 
-        std::set<std::pair<double, std::size_t>> q;
-        q.insert({distance(src->id), src->id});
+        using Entry = std::pair<double, std::size_t>;
+        std::priority_queue<Entry, std::vector<Entry>, std::greater<Entry>> q;
+
+        dist[src->id] = 0.0;
+        q.emplace(dist[src->id], src->id);
 
         while (!q.empty()) {
-            const auto& [_, v_id] = *q.begin();
-            q.erase(q.begin());
+            const auto& [v_dist, v_id] = q.top();
+            q.pop();
 
             if (v_id == dest->id)
                 break;
+
             for (const auto& edge : graph.nodes[v_id]->edges) {
-                const std::size_t dest_id = edge->dest->id;
+                Node* const neigh = edge->dest;
+                const double neigh_dist = dist[v_id] + edge->length;
 
-                if (dist[v_id] + edge->length < dist[dest_id]) {
-                    q.erase({distance(dest_id), dest_id});
+                if (neigh_dist < dist[neigh->id]) {
+                    dist[neigh->id] = neigh_dist;
+                    parent[neigh] = graph.nodes[v_id];
 
-                    dist[dest_id] = dist[v_id] + edge->length;
-                    parent[edge->dest] = graph.nodes[v_id];
-
-                    q.insert({distance(dest_id), dest_id});
+                    q.emplace(dist[neigh->id], neigh->id);
                     visited_edges.emplace_back(edge->src->coord, edge->dest->coord,
                                                sf::Color(0, 0, 255), default_thickness - 0.5);
                 }
@@ -120,21 +127,19 @@ class PathFindingManager {
     void set_final_path(std::unordered_map<Node*, Node*>& parent) {
         path.clear();
 
-        Node* current = dest;
-        if (current == nullptr) {
+        Node* cur = dest;
+        if (cur == nullptr)
             return;
-        }
-        if (parent[current] == nullptr) {
-            return;
-        }
 
-        while (current != src) {
-            path.emplace_back(parent[current]->coord, current->coord, sf::Color(0, 255, 0),
-                              default_thickness + 2);
-            current = parent[current];
-        }
+        while (cur != src) {
+            Node* const par = parent[cur];
 
-        std::reverse(path.begin(), path.end());
+            if (par == nullptr)
+                break;
+
+            path.emplace_back(cur->coord, par->coord, sf::Color(0, 255, 0), default_thickness + 2);
+            cur = par;
+        }
     }
 
 public:
