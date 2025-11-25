@@ -71,6 +71,11 @@ public:
                     // Caso 2: El usuario presiono una tecla
                     case sf::Event::KeyPressed: {
                         switch (event.key.code) {
+                            // G = Ejecutar Greedy BFS
+                            case sf::Keyboard::G: {
+                                path_finding_manager.exec(graph, GreedyBfs);
+                                break;
+                            }
                             // D = Ejecutar Dijkstra
                             case sf::Keyboard::D: {
                                 path_finding_manager.exec(graph, Dijkstra);

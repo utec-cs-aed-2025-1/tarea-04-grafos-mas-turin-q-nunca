@@ -13,6 +13,7 @@
 // Este enum sirve para identificar el algoritmo que el usuario desea simular
 enum Algorithm {
     None,
+    GreedyBfs,
     Dijkstra,
     AStar
 };
@@ -36,14 +37,29 @@ class PathFindingManager {
     std::vector<sfLine> path;
     std::vector<sfLine> visited_edges;
 
+    double euclidean(const sf::Vector2f& point) {
+        sf::Vector2f query = dest->coord;
+        return std::sqrt(std::pow((point.x - (double)query.x), 2) +
+                         std::pow((point.y - (double)query.y), 2));
+    }
 
+    std::unordered_map<std::size_t, double> heuristic_table;
+    void calculate_heuristic(Graph& graph) {
+        if (src == nullptr || dest == nullptr) {
+            return;
         }
+        heuristic_table.clear();
+        for (const auto& [id, node] : graph.nodes) {
+            heuristic_table[id] = euclidean(node->coord);
+        }
+    }
 
-    void dijkstra(Graph& graph) {
+    void greedy_bfs(Graph& graph) {
+        calculate_heuristic(graph);
+
         std::unordered_map<Node*, Node*> parent;
         std::map<std::size_t, double> dist;
 
-        const auto distance = [&](const std::size_t id) { return dist[id]; };
         constexpr double INF = std::numeric_limits<double>::infinity();
         visited_edges.clear();
 
@@ -51,10 +67,11 @@ class PathFindingManager {
             dist[id] = INF;
             parent[node] = nullptr;
         }
-        dist[src->id] = 0.0;
 
         std::set<std::pair<double, std::size_t>> q;
-        q.insert({distance(src->id), src->id});
+
+        dist[src->id] = 0.0;
+        q.emplace(heuristic_table[src->id], src->id);
 
         while (!q.empty()) {
             const auto& [_, v_id] = *q.begin();
@@ -66,12 +83,54 @@ class PathFindingManager {
                 const std::size_t dest_id = edge->dest->id;
 
                 if (dist[v_id] + edge->length < dist[dest_id]) {
-                    q.erase({distance(dest_id), dest_id});
+                    q.erase({dist[dest_id], dest_id});
 
                     dist[dest_id] = dist[v_id] + edge->length;
                     parent[edge->dest] = graph.nodes[v_id];
 
-                    q.insert({distance(dest_id), dest_id});
+                    q.emplace(heuristic_table[dest_id], dest_id);
+                    visited_edges.emplace_back(edge->src->coord, edge->dest->coord,
+                                               sf::Color(0, 0, 255), default_thickness - 0.5);
+                }
+            }
+        }
+
+        set_final_path(parent);
+    }
+
+    void dijkstra(Graph& graph) {
+        std::unordered_map<Node*, Node*> parent;
+        std::map<std::size_t, double> dist;
+
+        constexpr double INF = std::numeric_limits<double>::infinity();
+        visited_edges.clear();
+
+        for (const auto& [id, node] : graph.nodes) {
+            dist[id] = INF;
+            parent[node] = nullptr;
+        }
+
+        std::set<std::pair<double, std::size_t>> q;
+
+        dist[src->id] = 0.0;
+        q.emplace(dist[src->id], src->id);
+
+        while (!q.empty()) {
+            const auto& [_, v_id] = *q.begin();
+            q.erase(q.begin());
+
+            if (v_id == dest->id)
+                break;
+            for (const auto& edge : graph.nodes[v_id]->edges) {
+                const std::size_t dest_id = edge->dest->id;
+
+                if (dist[v_id] + edge->length < dist[dest_id]) {
+                    q.erase({dist[dest_id], dest_id});
+
+                    dist[dest_id] = dist[v_id] + edge->length;
+                    parent[edge->dest] = graph.nodes[v_id];
+
+                    q.emplace(dist[dest_id], dest_id);
                     visited_edges.emplace_back(edge->src->coord, edge->dest->coord,
                                                sf::Color(0, 0, 255), default_thickness - 0.5);
                 }
@@ -144,6 +203,10 @@ public:
         }
 
         switch (algorithm) {
+            case GreedyBfs: {
+                greedy_bfs(graph);
+                break;
+            }
             case Dijkstra: {
                 dijkstra(graph);
                 break;
