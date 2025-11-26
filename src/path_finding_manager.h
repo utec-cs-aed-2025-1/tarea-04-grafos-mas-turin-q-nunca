@@ -10,6 +10,8 @@
 #include "graph.h"
 #include "window_manager.h"
 
+static constexpr double INF = std::numeric_limits<double>::infinity();
+
 // Este enum sirve para identificar el algoritmo que el usuario desea simular
 enum Algorithm {
     None,
@@ -54,15 +56,11 @@ class PathFindingManager {
         }
     }
 
-    void greedy_bfs(Graph& graph) {
-        calculate_heuristic(graph);
-
-        std::unordered_map<Node*, Node*> parent;
-        std::map<std::size_t, double> dist;
-
-        constexpr double INF = std::numeric_limits<double>::infinity();
-        visited_edges.clear();
-
+    template<typename F>
+    void pepito(Graph& graph,
+                std::unordered_map<Node*, Node*>& parent,
+                std::map<std::size_t, double>& dist,
+                F&& distance) {
         for (const auto& [id, node] : graph.nodes) {
             dist[id] = INF;
             parent[node] = nullptr;
@@ -71,7 +69,7 @@ class PathFindingManager {
         std::set<std::pair<double, std::size_t>> q;
 
         dist[src->id] = 0.0;
-        q.emplace(heuristic_table[src->id], src->id);
+        q.emplace(distance(src->id), src->id);
 
         while (!q.empty()) {
             const auto& [_, v_id] = *q.begin();
@@ -83,107 +81,38 @@ class PathFindingManager {
                 const std::size_t dest_id = edge->dest->id;
 
                 if (dist[v_id] + edge->length < dist[dest_id]) {
-                    q.erase({heuristic_table[dest_id], dest_id});
+                    q.erase({distance(dest_id), dest_id});
 
                     dist[dest_id] = dist[v_id] + edge->length;
                     parent[edge->dest] = graph.nodes[v_id];
 
-                    q.emplace(heuristic_table[dest_id], dest_id);
+                    q.emplace(distance(dest_id), dest_id);
                     visited_edges.emplace_back(edge->src->coord, edge->dest->coord,
                                                sf::Color(0, 0, 255), default_thickness - 0.5);
                 }
             }
         }
-
-        set_final_path(parent);
     }
 
-    void dijkstra(Graph& graph) {
-        std::unordered_map<Node*, Node*> parent;
+    void greedy_bfs(Graph& graph, std::unordered_map<Node*, Node*>& parent) {
+        calculate_heuristic(graph);
         std::map<std::size_t, double> dist;
 
-        constexpr double INF = std::numeric_limits<double>::infinity();
-        visited_edges.clear();
-
-        for (const auto& [id, node] : graph.nodes) {
-            dist[id] = INF;
-            parent[node] = nullptr;
-        }
-
-        std::set<std::pair<double, std::size_t>> q;
-
-        dist[src->id] = 0.0;
-        q.emplace(dist[src->id], src->id);
-
-        while (!q.empty()) {
-            const auto& [_, v_id] = *q.begin();
-            q.erase(q.begin());
-
-            if (v_id == dest->id)
-                break;
-            for (const auto& edge : graph.nodes[v_id]->edges) {
-                const std::size_t dest_id = edge->dest->id;
-
-                if (dist[v_id] + edge->length < dist[dest_id]) {
-                    q.erase({dist[dest_id], dest_id});
-
-                    dist[dest_id] = dist[v_id] + edge->length;
-                    parent[edge->dest] = graph.nodes[v_id];
-
-                    q.emplace(dist[dest_id], dest_id);
-                    visited_edges.emplace_back(edge->src->coord, edge->dest->coord,
-                                               sf::Color(0, 0, 255), default_thickness - 0.5);
-                }
-            }
-        }
-
-        set_final_path(parent);
+        pepito(graph, parent, dist, [&](const std::size_t v_id) { return heuristic_table[v_id]; });
     }
 
-    void a_star(Graph& graph) {
+    void dijkstra(Graph& graph, std::unordered_map<Node*, Node*>& parent) {
+        std::map<std::size_t, double> dist;
+
+        pepito(graph, parent, dist, [&](const std::size_t v_id) { return dist[v_id]; });
+    }
+
+    void a_star(Graph& graph, std::unordered_map<Node*, Node*>& parent) {
         calculate_heuristic(graph);
+        std::map<std::size_t, double> dist;
 
-        std::unordered_map<Node*, Node*> parent;
-        std::map<std::size_t, double> g;
-
-        constexpr double INF = std::numeric_limits<double>::infinity();
-        visited_edges.clear();
-
-        for (const auto& [id, node] : graph.nodes) {
-            g[id] = INF;
-            parent[node] = nullptr;
-        }
-
-        std::set<std::pair<double, std::size_t>> q;
-
-        g[src->id] = 0.0;
-        q.emplace(heuristic_table[src->id], src->id);
-
-        while (!q.empty()) {
-            const auto& [_, v_id] = *q.begin();
-            q.erase(q.begin());
-
-            if (v_id == dest->id) {
-                break;
-            }
-
-            for (const auto& edge : graph.nodes[v_id]->edges) {
-                const std::size_t dest_id = edge->dest->id;
-
-                if (g[v_id] + edge->length < g[dest_id]) {
-                    q.erase({g[dest_id] + heuristic_table[dest_id], dest_id});
-
-                    g[dest_id] = g[v_id] + edge->length;
-                    parent[edge->dest] = graph.nodes[v_id];
-
-                    q.emplace(g[dest_id] + heuristic_table[dest_id], dest_id);
-                    visited_edges.emplace_back(edge->src->coord, edge->dest->coord,
-                                               sf::Color(0, 0, 255), default_thickness - 0.5);
-                }
-            }
-        }
-
-        set_final_path(parent);
+        pepito(graph, parent, dist,
+               [&](const std::size_t v_id) { return dist[v_id] + heuristic_table[v_id]; });
     }
 
     //* --- render ---
@@ -210,8 +139,6 @@ class PathFindingManager {
     // Este path será utilizado para hacer el 'draw()' del 'path' entre 'src' y 'dest'.
     //*
     void set_final_path(std::unordered_map<Node*, Node*>& parent) {
-        path.clear();
-
         Node* current = dest;
         if (current == nullptr) {
             return;
@@ -221,12 +148,10 @@ class PathFindingManager {
         }
 
         while (current != src) {
-            path.emplace_back(parent[current]->coord, current->coord, sf::Color(0, 255, 0),
+            path.emplace_back(current->coord, parent[current]->coord, sf::Color(0, 255, 0),
                               default_thickness + 2);
             current = parent[current];
         }
-
-        std::reverse(path.begin(), path.end());
     }
 
 public:
@@ -240,23 +165,28 @@ public:
         if (src == nullptr || dest == nullptr) {
             return;
         }
+        path.clear();
+        visited_edges.clear();
 
+        std::unordered_map<Node*, Node*> parent;
         switch (algorithm) {
             case GreedyBfs: {
-                greedy_bfs(graph);
+                greedy_bfs(graph, parent);
                 break;
             }
             case Dijkstra: {
-                dijkstra(graph);
+                dijkstra(graph, parent);
                 break;
             }
             case AStar: {
-                a_star(graph);
+                a_star(graph, parent);
                 break;
             }
             default:
                 break;
         }
+
+        set_final_path(parent);
     }
 
     void reset() {
