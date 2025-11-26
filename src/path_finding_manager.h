@@ -141,8 +141,47 @@ class PathFindingManager {
     }
 
     void a_star(Graph& graph) {
+        calculate_heuristic(graph);
+
         std::unordered_map<Node*, Node*> parent;
-        // TODO: Add your code here
+        std::map<std::size_t, double> g;
+
+        constexpr double INF = std::numeric_limits<double>::infinity();
+        visited_edges.clear();
+
+        for (const auto& [id, node] : graph.nodes) {
+            g[id] = INF;
+            parent[node] = nullptr;
+        }
+
+        std::set<std::pair<double, std::size_t>> q;
+
+        g[src->id] = 0.0;
+        q.emplace(heuristic_table[src->id], src->id);
+
+        while (!q.empty()) {
+            const auto& [_, v_id] = *q.begin();
+            q.erase(q.begin());
+
+            if (v_id == dest->id) {
+                break;
+            }
+
+            for (const auto& edge : graph.nodes[v_id]->edges) {
+                const std::size_t dest_id = edge->dest->id;
+
+                if (g[v_id] + edge->length < g[dest_id]) {
+                    q.erase({g[dest_id] + heuristic_table[dest_id], dest_id});
+
+                    g[dest_id] = g[v_id] + edge->length;
+                    parent[edge->dest] = graph.nodes[v_id];
+
+                    q.emplace(g[dest_id] + heuristic_table[dest_id], dest_id);
+                    visited_edges.emplace_back(edge->src->coord, edge->dest->coord,
+                                               sf::Color(0, 0, 255), default_thickness - 0.5);
+                }
+            }
+        }
 
         set_final_path(parent);
     }
