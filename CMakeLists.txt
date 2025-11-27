@@ -2,14 +2,15 @@ cmake_minimum_required(VERSION 3.27)
 project(homework_graph)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_executable(${PROJECT_NAME} main.cpp
-        graph.h
-        gui.h
-        node.h
-        edge.h
-        window_manager.h
-        path_finding_manager.h
+add_executable(${PROJECT_NAME} src/main.cpp
+        src/graph.h
+        src/gui.h
+        src/node.h
+        src/edge.h
+        src/window_manager.h
+        src/path_finding_manager.h
 )
 
 find_package(SFML 2.5 COMPONENTS graphics window REQUIRED)

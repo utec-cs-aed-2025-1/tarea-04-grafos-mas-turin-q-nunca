@@ -5,16 +5,15 @@
 #ifndef HOMEWORK_GRAPH_GRAPH_H
 #define HOMEWORK_GRAPH_GRAPH_H
 
-
-#include "window_manager.h"
-#include "node.h"
 #include "edge.h"
-
+#include "node.h"
+#include "window_manager.h"
 
 // *
 // ---- Graph ----
-// Esta clase contiene la estructura del grafo en si misma. Recordemos que un grafo G se define como G = (V, E),
-// donde V es un conjunto de vertices y E un conjunto de aristas (a, b), donde a y b pertenecen a V.
+// Esta clase contiene la estructura del grafo en si misma. Recordemos que un grafo G se define como
+// G = (V, E), donde V es un conjunto de vertices y E un conjunto de aristas (a, b), donde a y b
+// pertenecen a V.
 //
 // Variables miembro
 //     - nodes         : Todos los nodos de nuestro grafo
@@ -27,17 +26,18 @@
 //     - reset         : Restaura los colores de vértices y aristas a sus colores por defecto
 // *
 struct Graph {
-    WindowManager *window_manager;
-    std::map<size_t, Node *> nodes;
-    std::vector<Edge *> edges;
+    WindowManager* window_manager;
+    std::map<size_t, Node*> nodes;
+    std::vector<Edge*> edges;
 
-    explicit Graph(WindowManager* window_manager): window_manager(window_manager) {}
+    explicit Graph(WindowManager* window_manager)
+        : window_manager(window_manager) {}
 
-    void parse_csv(const std::string &nodes_path, const std::string &edges_path) {
+    void parse_csv(const std::string& nodes_path, const std::string& edges_path) {
         Node::parse_csv(nodes_path, this->nodes);
         Edge::parse_csv(edges_path, this->edges, this->nodes);
 
-        for (Edge *edge: edges) {
+        for (Edge* edge : edges) {
             nodes[edge->src->id]->edges.push_back(edge);
             if (!edge->one_way) {
                 nodes[edge->dest->id]->edges.push_back(edge);
@@ -46,15 +46,15 @@ struct Graph {
     }
 
     void draw() {
-        for (Edge *edge: edges) {
-            edge->draw(window_manager->get_window());
+        for (Edge* edge : edges) {
+            if (edge != nullptr)
+                edge->draw(window_manager->get_window());
         }
-        for (auto &[_, node]: nodes) {
-            node->draw(window_manager->get_window());
+        for (auto& [_, node] : nodes) {
+            if (node != nullptr)
+                node->draw(window_manager->get_window());
         }
     }
 };
 
-
-
-#endif //HOMEWORK_GRAPH_GRAPH_H
+#endif  // HOMEWORK_GRAPH_GRAPH_H

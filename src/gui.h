@@ -5,13 +5,11 @@
 #ifndef HOMEWORK_GRAPH_GUI_H
 #define HOMEWORK_GRAPH_GUI_H
 
-
-#include "window_manager.h"
 #include "path_finding_manager.h"
+#include "window_manager.h"
 
 #include <cmath>
 #include <functional>
-
 
 class GUI {
     WindowManager window_manager;
@@ -19,19 +17,18 @@ class GUI {
 
     Graph graph;
 
-    // 1NN es un algoritmo muy popular que retorna el 1 Nearest Neighbour (de ahí el nombre 1NN), o vecino más cercano
-    // de una coleccion de elementos a una query dada.
-    // En este caso, nos interesa conocer cuál es el nodo mas cercano al punto 'query' pasado como parámetro.
-    static Node *_1NN(std::map<std::size_t, Node *> &nodes, sf::Vector2i query) {
-        Node *nearest = nullptr;
+    // 1NN es un algoritmo muy popular que retorna el 1 Nearest Neighbour (de ahí el nombre 1NN), o
+    // vecino más cercano de una coleccion de elementos a una query dada. En este caso, nos interesa
+    // conocer cuál es el nodo mas cercano al punto 'query' pasado como parámetro.
+    static Node* _1NN(std::map<std::size_t, Node*>& nodes, sf::Vector2i query) {
+        Node* nearest = nullptr;
         double min_dist = std::numeric_limits<double>::max();
         std::function<double(sf::Vector2f)> euclidean = [&](sf::Vector2f point) {
-            return std::sqrt(
-                    std::pow((point.x - (double) query.x), 2) + std::pow((point.y - (double) query.y), 2)
-            );
+            return std::sqrt(std::pow((point.x - (double)query.x), 2) +
+                             std::pow((point.y - (double)query.y), 2));
         };
 
-        for (auto &[_, node]: nodes) {
+        for (auto& [_, node] : nodes) {
             double dist = euclidean(node->coord);
             if (dist < min_dist) {
                 min_dist = dist;
@@ -43,9 +40,9 @@ class GUI {
     }
 
 public:
-
-    explicit GUI(const std::string &nodes_path, const std::string &edges_path)
-            : path_finding_manager(&window_manager), graph(&window_manager) {
+    explicit GUI(const std::string& nodes_path, const std::string& edges_path)
+        : path_finding_manager(&window_manager),
+          graph(&window_manager) {
         // Parsea los nodos y aristas leyendolos a partir del csv
         graph.parse_csv(nodes_path, edges_path);
         // Para fines de la animación, puede variar dependiendo del computador
@@ -57,8 +54,8 @@ public:
 
         // Corre la GUI siempre y cuando la ventana esté abierta
         while (window_manager.is_open()) {
-            // Verifica los eventos de la ventana que pueden ser 'triggereados' (lanzados) por el usuario en la
-            // iteración actual
+            // Verifica los eventos de la ventana que pueden ser 'triggereados' (lanzados) por el
+            // usuario en la iteración actual
             sf::Event event{};
 
             while (window_manager.poll_event(event)) {
@@ -74,6 +71,11 @@ public:
                     // Caso 2: El usuario presiono una tecla
                     case sf::Event::KeyPressed: {
                         switch (event.key.code) {
+                            // G = Ejecutar Greedy BFS
+                            case sf::Keyboard::G: {
+                                path_finding_manager.exec(graph, GreedyBfs);
+                                break;
+                            }
                             // D = Ejecutar Dijkstra
                             case sf::Keyboard::D: {
                                 path_finding_manager.exec(graph, Dijkstra);
@@ -109,20 +111,23 @@ public:
                     }
 
                     // Caso 3: El usuario presionó el mouse
-                    case sf::Event::MouseButtonPressed : {
+                    case sf::Event::MouseButtonPressed: {
                         // Obtiene las posiciones del mouse respecto a la ventana
-                        sf::Vector2i mouse_position = sf::Mouse::getPosition(window_manager.get_window());
+                        sf::Vector2i mouse_position =
+                            sf::Mouse::getPosition(window_manager.get_window());
 
                         // Si no existe un nodo fuente ('src') asignado
                         if (path_finding_manager.src == nullptr) {
-                            // Encuentra el vértice más cercano a la posición del mouse y asigna el vértice a 'src'
+                            // Encuentra el vértice más cercano a la posición del mouse y asigna el
+                            // vértice a 'src'
                             path_finding_manager.src = _1NN(graph.nodes, mouse_position);
                             path_finding_manager.src->color = sf::Color::Green;
                             path_finding_manager.src->radius = 3.0f;
                         }
                         // Si no existe un nodo destino ('dest') asignado
                         else if (path_finding_manager.dest == nullptr) {
-                            // Encuentra el vértice más cercano a la posición del mouse y asigna el vértice a 'dest'
+                            // Encuentra el vértice más cercano a la posición del mouse y asigna el
+                            // vértice a 'dest'
                             path_finding_manager.dest = _1NN(graph.nodes, mouse_position);
                             path_finding_manager.dest->color = sf::Color::Cyan;
                             path_finding_manager.dest->radius = 3.0f;
@@ -152,5 +157,4 @@ public:
     }
 };
 
-
-#endif //HOMEWORK_GRAPH_GUI_H
+#endif  // HOMEWORK_GRAPH_GUI_H
