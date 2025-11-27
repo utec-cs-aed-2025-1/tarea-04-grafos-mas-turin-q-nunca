@@ -9,6 +9,10 @@
 2. Diego Alonso Figueroa Winkelried
 3. José Daniel Grayson Tejada
 
+## Grabación
+
+[Link al video](https://drive.google.com/file/d/1AEkil3Z4Ng7aA-8BJfZETIUuAUj6_fjI/view?usp=sharing)
+
 ## Complejidades
 
 Los 3 algoritmos implementados utilizan una sola función `pepito`, la cual
