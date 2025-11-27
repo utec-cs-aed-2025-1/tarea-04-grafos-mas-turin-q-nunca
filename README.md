@@ -9,6 +9,40 @@
 2. Diego Alonso Figueroa Winkelried
 3. José Daniel Grayson Tejada
 
+## Complejidades
+
+Los 3 algoritmos implementados utilizan una sola función `pepito`, la cual
+contiene el algoritmo general de path-finding que los 3 algoritmos comparten.
+Cada algoritmo simplemente ejecuta `pepito` con una función `distance`
+diferente:
+
+- Greedy BFS: `heuristic_table[v_id]`
+- Dijkstra: `dist[v_id]`
+- A\*: `dist[v_id] + heuristic_table[v_id]`
+
+La función `pepito` tiene complejidad $O(|E|\log(|V|))$, y las funciones
+`distance` de todos los algoritmos tienen complejidad constante.
+
+### Greedy BFS, A\*
+
+Estos dos algoritmos pre-calculan las heurísticas para todos los nodos, lo que
+añade costo $O(|V|)$. Por lo tanto, sus complejidades son
+
+$$
+O(|V| + |E|\log(|V|)).
+$$
+
+### Dijkstra
+
+Por el contrario, el algoritmo de Dijkstra no requiere computar heurísticas. Su
+único costo viene de `pepito`. Además, al contrario que el Dijkstra tradicional,
+esta implementación se detiene al llegar al nodo destino. Por lo tanto, tiene
+complejidad
+
+$$
+O(|E|\log(|V|)).
+$$
+
 ## Objetivo:
 
 El objetivo de esta tarea es implementar un **Path Finder** para la ciudad de Lima.
