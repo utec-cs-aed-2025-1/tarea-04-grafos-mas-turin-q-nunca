@@ -11,6 +11,7 @@
 #include "window_manager.h"
 
 static constexpr double INF = std::numeric_limits<double>::infinity();
+static constexpr double HEURISTIC_MULTIPLIER = 200.0;
 
 // Este enum sirve para identificar el algoritmo que el usuario desea simular
 enum Algorithm {
@@ -52,7 +53,7 @@ class PathFindingManager {
         }
         heuristic_table.clear();
         for (const auto& [id, node] : graph.nodes) {
-            heuristic_table[id] = euclidean(node->coord);
+            heuristic_table[id] = HEURISTIC_MULTIPLIER * euclidean(node->coord);
         }
     }
 
@@ -88,7 +89,12 @@ class PathFindingManager {
 
                     q.emplace(distance(dest_id), dest_id);
                     visited_edges.emplace_back(edge->src->coord, edge->dest->coord,
-                                               sf::Color(0, 0, 255), default_thickness - 0.5);
+                                               sf::Color(0, 0, 255), default_thickness);
+                    static uint64_t counter = 0;
+                    if (++counter >= 50) {
+                        counter = 0;
+                        render([&] { draw(true); });
+                    }
                 }
             }
         }
@@ -118,9 +124,11 @@ class PathFindingManager {
     //* --- render ---
     // En cada iteración de los algoritmos esta función es llamada para dibujar los cambios en el
     // 'window_manager'
-    void render() {
+    template<typename F>
+    void render(F&& draw) {
         sf::sleep(sf::milliseconds(10));
-        // TODO: Add your code here
+        draw();
+        window_manager->display();
     }
 
     //* --- set_final_path ---
@@ -140,14 +148,8 @@ class PathFindingManager {
     //*
     void set_final_path(std::unordered_map<Node*, Node*>& parent) {
         Node* current = dest;
-        if (current == nullptr) {
-            return;
-        }
-        if (parent[current] == nullptr) {
-            return;
-        }
 
-        while (current != src) {
+        while (current != src && current != nullptr && parent[current] != nullptr) {
             path.emplace_back(current->coord, parent[current]->coord, sf::Color(0, 255, 0),
                               default_thickness + 2);
             current = parent[current];
