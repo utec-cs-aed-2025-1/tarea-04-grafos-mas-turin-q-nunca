@@ -47,10 +47,12 @@ struct Graph {
 
     void draw() {
         for (Edge* edge : edges) {
-            edge->draw(window_manager->get_window());
+            if (edge != nullptr)
+                edge->draw(window_manager->get_window());
         }
         for (auto& [_, node] : nodes) {
-            node->draw(window_manager->get_window());
+            if (node != nullptr)
+                node->draw(window_manager->get_window());
         }
     }
 };
