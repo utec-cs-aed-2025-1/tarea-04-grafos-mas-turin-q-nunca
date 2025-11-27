@@ -67,6 +67,14 @@ class PathFindingManager {
             parent[node] = nullptr;
         }
 
+        // Usamos un set en lugar de priority queue porque:
+        //   1. Por su implementación como árbol autobalanceado, el set permite operaciones de
+        //      priority queue en tiempo logarítmico, igual que el min heap.
+        //   2. Usar un set nos permite "cambiar" la prioridad de un nodo borrando el entry original
+        //      y reinsertándolo con la nueva prioridad.
+        //
+        // La posibilidad de cambiar prioridad facilita el algoritmo.
+
         std::set<std::pair<double, std::size_t>> q;
 
         dist[src->id] = 0.0;
